@@ -1,38 +1,26 @@
-# api/model_loader.py
+# api/model_loader.py - classical sklearn model (TF-IDF + LogisticRegression pipeline)
 import os
+import pickle
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_DIR = os.path.join(ROOT_DIR, "models")
-MAX_LEN = 100
+MODEL_PATH = os.path.join(ROOT_DIR, "models", "classical_model.pkl")
 
 _model = None
-_tokenizer = None
 
 
 def load_artifacts():
-    """Load model and tokenizer on first prediction (lazy loading)."""
-    global _model, _tokenizer
+    global _model
     if _model is not None:
         return
-    from tensorflow.keras.models import load_model
-    from tensorflow.keras.preprocessing.text import tokenizer_from_json
-
-    model_path = os.path.join(MODEL_DIR, "best_deep_model.h5")
-    tokenizer_path = os.path.join(MODEL_DIR, "tokenizer.json")
-    _model = load_model(model_path)
-    with open(tokenizer_path, "r") as f:
-        _tokenizer = tokenizer_from_json(f.read())
+    with open(MODEL_PATH, "rb") as f:
+        _model = pickle.load(f)  # noqa: S301 - trusted local ML model file
 
 
 def predict_sentiment(cleaned_text: str) -> dict:
-    """Predict sentiment from a cleaned tweet text."""
-    from tensorflow.keras.preprocessing.sequence import pad_sequences
-
     if not cleaned_text:
         return {"sentiment": "negatif", "confidence": 0.5}
-    seq = _tokenizer.texts_to_sequences([cleaned_text])
-    padded = pad_sequences(seq, maxlen=MAX_LEN)
-    proba = float(_model.predict(padded, verbose=0)[0][0])
-    sentiment = "positif" if proba > 0.5 else "negatif"
-    confidence = proba if proba > 0.5 else 1 - proba
-    return {"sentiment": sentiment, "confidence": round(confidence, 4)}
+    proba = _model.predict_proba([cleaned_text])[0]
+    label = int(_model.predict([cleaned_text])[0])
+    sentiment = "positif" if label == 1 else "negatif"
+    confidence = round(float(proba[label]), 4)
+    return {"sentiment": sentiment, "confidence": confidence}
