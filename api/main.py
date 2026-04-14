@@ -1,5 +1,4 @@
 # api/main.py
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pydantic import BaseModel
 from api.model_loader import load_artifacts, predict_sentiment
@@ -16,13 +15,7 @@ class PredictionResponse(BaseModel):
     tweet_clean: str
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    load_artifacts()
-    yield
-
-
-app = FastAPI(title="Air Paradis - Sentiment API", lifespan=lifespan)
+app = FastAPI(title="Air Paradis - Sentiment API")
 
 
 @app.get("/health")
@@ -32,6 +25,7 @@ def health():
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(request: TweetRequest):
+    load_artifacts()
     cleaned = clean_tweet(request.text)
     result = predict_sentiment(cleaned)
     return PredictionResponse(

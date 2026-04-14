@@ -1,7 +1,8 @@
 # api/model_loader.py
 import os
 
-MODEL_DIR = os.path.join(os.path.dirname(__file__), "model_artifacts")
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_DIR = os.path.join(ROOT_DIR, "models")
 MAX_LEN = 100
 
 _model = None
@@ -9,12 +10,14 @@ _tokenizer = None
 
 
 def load_artifacts():
-    """Load model and tokenizer at startup."""
+    """Load model and tokenizer on first prediction (lazy loading)."""
     global _model, _tokenizer
+    if _model is not None:
+        return
     from tensorflow.keras.models import load_model
     from tensorflow.keras.preprocessing.text import tokenizer_from_json
 
-    model_path = os.path.join(MODEL_DIR, "model")
+    model_path = os.path.join(MODEL_DIR, "best_deep_model.h5")
     tokenizer_path = os.path.join(MODEL_DIR, "tokenizer.json")
     _model = load_model(model_path)
     with open(tokenizer_path, "r") as f:
