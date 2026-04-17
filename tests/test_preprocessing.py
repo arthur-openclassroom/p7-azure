@@ -1,5 +1,5 @@
 import pytest
-from src.preprocessing import clean_tweet, preprocess_text
+from api.preprocessing import clean_tweet, preprocess_text
 
 
 class TestCleanTweet:

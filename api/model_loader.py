@@ -20,7 +20,7 @@ def load_artifacts():
         logger.error("Model file NOT FOUND at %s", MODEL_PATH)
         raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
     with open(MODEL_PATH, "rb") as f:
-        _model = pickle.load(f)  # noqa: S301 - trusted local ML model file
+        _model = pickle.load(f)
     logger.info("Model loaded OK")
 
 

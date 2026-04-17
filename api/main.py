@@ -1,10 +1,9 @@
-# api/main.py
 import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from api.model_loader import load_artifacts, predict_sentiment
-from src.preprocessing import clean_tweet
+from api.preprocessing import clean_tweet
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

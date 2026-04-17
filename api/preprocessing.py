@@ -2,7 +2,6 @@ import os
 import re
 import nltk
 
-# Cherche les données NLTK dans le dossier du projet (inclus dans le repo)
 _NLTK_DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "nltk_data")
 if os.path.isdir(_NLTK_DATA):
     nltk.data.path.insert(0, _NLTK_DATA)
