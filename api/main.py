@@ -1,5 +1,6 @@
 import logging
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -9,10 +10,14 @@ from api.preprocessing import clean_tweet
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-_APPINSIGHTS_CONNECTION_STRING = os.getenv("APPINSIGHTS_CONNECTION_STRING", "")
-if _APPINSIGHTS_CONNECTION_STRING:
-    from azure.monitor.opentelemetry import configure_azure_monitor
-    configure_azure_monitor(connection_string=_APPINSIGHTS_CONNECTION_STRING)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    connection_string = os.getenv("APPINSIGHTS_CONNECTION_STRING", "")
+    if connection_string:
+        from azure.monitor.opentelemetry import configure_azure_monitor
+        configure_azure_monitor(connection_string=connection_string)
+    yield
 
 
 class TweetRequest(BaseModel):
@@ -31,7 +36,7 @@ class FeedbackRequest(BaseModel):
     confidence: float
 
 
-app = FastAPI(title="Air Paradis - Sentiment API")
+app = FastAPI(title="Air Paradis - Sentiment API", lifespan=lifespan)
 
 
 @app.exception_handler(Exception)
