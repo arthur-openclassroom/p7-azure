@@ -1,5 +1,5 @@
 # Monitoring
-opencensus-ext-azure>=1.1.0
+azure-monitor-opentelemetry>=1.6.0
 
 # API
 fastapi>=0.104.0

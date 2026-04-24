@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 _APPINSIGHTS_CONNECTION_STRING = os.getenv("APPINSIGHTS_CONNECTION_STRING", "")
 if _APPINSIGHTS_CONNECTION_STRING:
-    from opencensus.ext.azure.log_exporter import AzureLogHandler
-    logger.addHandler(AzureLogHandler(connection_string=_APPINSIGHTS_CONNECTION_STRING))
+    from azure.monitor.opentelemetry import configure_azure_monitor
+    configure_azure_monitor(connection_string=_APPINSIGHTS_CONNECTION_STRING)
 
 
 class TweetRequest(BaseModel):
