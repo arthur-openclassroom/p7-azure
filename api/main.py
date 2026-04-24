@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -7,6 +8,11 @@ from api.preprocessing import clean_tweet
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+_APPINSIGHTS_CONNECTION_STRING = os.getenv("APPINSIGHTS_CONNECTION_STRING", "")
+if _APPINSIGHTS_CONNECTION_STRING:
+    from opencensus.ext.azure.log_exporter import AzureLogHandler
+    logger.addHandler(AzureLogHandler(connection_string=_APPINSIGHTS_CONNECTION_STRING))
 
 
 class TweetRequest(BaseModel):
@@ -17,6 +23,12 @@ class PredictionResponse(BaseModel):
     sentiment: str
     confidence: float
     tweet_clean: str
+
+
+class FeedbackRequest(BaseModel):
+    tweet: str
+    predicted_sentiment: str
+    confidence: float
 
 
 app = FastAPI(title="Air Paradis - Sentiment API")
@@ -31,6 +43,21 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/feedback")
+def feedback(request: FeedbackRequest):
+    logger.warning(
+        "Mauvaise prediction signalee",
+        extra={
+            "custom_dimensions": {
+                "tweet": request.tweet,
+                "predicted_sentiment": request.predicted_sentiment,
+                "confidence": str(request.confidence),
+            }
+        },
+    )
+    return {"status": "recorded"}
 
 
 @app.post("/predict", response_model=PredictionResponse)
